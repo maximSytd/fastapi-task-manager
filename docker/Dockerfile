@@ -1,57 +1,37 @@
-FROM python:3.11-slim AS python-base
+FROM python:3.13-slim AS base
 
 ENV PYTHONUNBUFFERED=1 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_NO_CACHE_DIR=off \
+    PIP_NO_CACHE_DIR=1 \
     USE_DOCKER=1 \
-	# poetry:
-	POETRY_VERSION=2.1.2 \
-	POETRY_VIRTUALENVS_CREATE=false \
-	POETRY_CACHE_DIR='/var/cache/pypoetry' \
-	# Locale settings
-	LANG=ru_RU.UTF-8 \
-	LC_ALL=ru_RU.UTF-8 \
-	LC_TIME=ru_RU.UTF-8 \
-	LANGUAGE=ru_RU.UTF-8 \
-	# paths
-    # this is where our requirements + virtual environment will live
-    PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv"
-
-ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
-
-###############################################
-# Builder Image
-###############################################
-FROM python-base AS builder-base
+    LANG=ru_RU.UTF-8 \
+    LC_ALL=ru_RU.UTF-8 \
+    LC_TIME=ru_RU.UTF-8 \
+    LANGUAGE=ru_RU.UTF-8
 
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install --no-install-recommends -y \
     bash \
     build-essential \
     curl \
-    gettext \
     gcc \
-  && pip install "poetry==$POETRY_VERSION" && poetry --version \
-  # Cleaning cache:
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    gettext \
   && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:$PATH"
 
-WORKDIR $PYSETUP_PATH
-COPY poetry.lock pyproject.toml ./
+WORKDIR /app
 
-RUN poetry install --without dev
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
-FROM builder-base AS development
-# we make this to reproduce the same structure as repo for aerich
-RUN poetry install
-WORKDIR /app/
-FROM builder-base AS production
-# we make this to reproduce the same structure as repo for aerich
-COPY ./app /app/app
-COPY pyproject.toml /app/pyproject.toml
-WORKDIR /app/
-CMD ["python", "app/main.py"]
+FROM base AS development
+COPY . .
+RUN uv sync --frozen
+CMD ["uv", "run", "python", "app/main.py"]
+
+FROM base AS production
+COPY ./app ./app
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+CMD ["uv", "run", "python", "app/main.py"]
