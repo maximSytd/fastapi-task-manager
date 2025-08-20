@@ -4,14 +4,14 @@ import datetime
 
 import pydantic
 
-from ..models import Task
-from ...services.enums import StrEnumAsDict
+from db.models import Task
+from services.enums import StrEnumAsDict
 
 class TaskBase(pydantic.BaseModel):
     """Base Task schema."""
 
     title: str
-    description: None | str
+    description: None | str = None
 
 
 class TaskCreate(TaskBase):
@@ -21,8 +21,8 @@ class TaskCreate(TaskBase):
 class TaskUpdate(TaskBase):
     """Task schema to update instance."""
 
-    title: None | str
-    status: None | Task.StatusChoices
+    title: None | str = None
+    status: None | Task.StatusChoices = None
 
 
 class TaskOut(TaskBase):
