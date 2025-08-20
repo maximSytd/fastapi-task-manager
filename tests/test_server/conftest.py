@@ -1,26 +1,38 @@
-import pytest
 import pytest_asyncio
-from tortoise import Tortoise
+from httpx import AsyncClient
 
-from app.server.server import app
-from tests.utils import client_manager, ClientManagerType
+from app.db.models import User
+from app.db.factories import AsyncUserFactory
+from app.services.auth import create_access_token
 
 
 @pytest_asyncio.fixture(scope="module")
-async def async_client() -> ClientManagerType:
-    async with client_manager(app) as c:
-        yield c
+async def test_user() -> User:
+    """Return user instance for tests."""
+    return await AsyncUserFactory.create()
 
 
-@pytest.fixture(scope="module")
-def anyio_backend() -> str:
-    return "asyncio"
+@pytest_asyncio.fixture(scope="module")
+async def test_user_token(test_user: User) -> str:
+    """Return test user auth token."""
+    return create_access_token(data={"sub": test_user.username})
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def clean_db():
-    """
-    Фикстура для очистки базы данных перед каждым тестом, чтобы тесты были независимыми.
-    """
-    for model in Tortoise.apps.get("models", {}).values():
-        await model.all().delete()
+@pytest_asyncio.fixture(scope="module")
+async def invalid_test_user_token(test_user: User) -> str:
+    """Return invalid auth token."""
+    return create_access_token(data={"sub": test_user.username[::-1]})
+
+
+@pytest_asyncio.fixture(scope="module")
+async def authorized_async_client(
+    async_client: AsyncClient,
+    test_user_token: str,
+) -> AsyncClient:
+    """Return and provide auth token to async client."""
+    async_client.headers.update(
+        {
+            "Authorization": f"Bearer {test_user_token}",
+        },
+    )
+    return async_client
