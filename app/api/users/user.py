@@ -1,30 +1,62 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from tortoise.exceptions import DoesNotExist, IntegrityError
+from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
 from db.models import User
-import schemas
-from services.auth import create_access_token, verify_password, get_password_hash
-from app.dependencies import get_current_user
+from db import schemas
+from services.auth import (
+    create_access_token,
+    verify_password,
+    get_password_hash,
+)
 
 user_router = APIRouter()
 
-@user_router.post("/token", response_model=schemas.Token)
+INCORRECT_CREDENTIALS_MESSAGE = "Incorrect username or password"
+USERNAME_ALREADY_EXIST_MESSAGE = "Username already exists"
+
+@user_router.post(
+    "/token",
+    response_model=schemas.Token,
+    responses={
+        HTTP_400_BAD_REQUEST: {
+            "description": INCORRECT_CREDENTIALS_MESSAGE,
+        }
+    }
+)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """Login user with OAuth form."""
     try:
         user = await User.get(username=form_data.username)
     except DoesNotExist:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=INCORRECT_CREDENTIALS_MESSAGE,
+        )
 
     if not verify_password(form_data.password, user.password_hash):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=INCORRECT_CREDENTIALS_MESSAGE,
+        )
 
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@user_router.post("/register", response_model=schemas.User)
+@user_router.post(
+    "/register",
+    response_model=schemas.UserOut,
+    status_code=HTTP_201_CREATED,
+    responses={
+        HTTP_400_BAD_REQUEST: {
+            "description": USERNAME_ALREADY_EXIST_MESSAGE,
+        },
+    }
+)
 async def register(user: schemas.UserCreate):
+    """Register new user."""
     hashed_password = get_password_hash(user.password)
     try:
         new_user = await User.create(
@@ -33,34 +65,7 @@ async def register(user: schemas.UserCreate):
         )
         return new_user
     except IntegrityError:
-        raise HTTPException(status_code=400, detail="Username already exists")
-
-
-@user_router.get("/me", response_model=schemas.UserProfile, tags=["user"])
-async def get_profile(current_user: User = Depends(get_current_user)):
-    await current_user.fetch_related("grade__specialty", "performance_reviews")
-
-    specialty = None
-    grade_info = None
-    next_review_date = None
-
-    if current_user.grade:
-        specialty = {"title": current_user.grade.specialty.title}
-        grade_info = {
-            "title": current_user.grade.title,
-            "salary": current_user.grade.salary,
-        }
-
-    if current_user.performance_reviews:
-        latest_review = max(
-            current_user.performance_reviews,
-            key=lambda r: r.date_held,
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=USERNAME_ALREADY_EXIST_MESSAGE,
         )
-        next_review_date = latest_review.date_held
-
-    return schemas.UserProfile(
-        username=current_user.username,
-        specialty=specialty,
-        grade=grade_info,
-        next_performance_review=next_review_date,
-    )

@@ -3,21 +3,26 @@ import uuid
 from fastapi_babel import _
 from fastapi import APIRouter, Depends, HTTPException
 from tortoise.exceptions import DoesNotExist
-from fastapi_pagination import Page, paginate
-from starlette.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
+from fastapi_pagination import Page
+from fastapi_pagination.ext.tortoise import paginate
+from starlette.status import (
+    HTTP_201_CREATED,
+    HTTP_404_NOT_FOUND,
+    HTTP_204_NO_CONTENT,
+)
 
 from db import schemas
 from db.models import User, Task
-from app.dependencies.auth import get_current_user
+from dependencies.auth import get_current_user
 
 task_router = APIRouter()
 
 TASK_NOT_FOUND_MESSAGE = "Task not found"
 
 @task_router.get("/", response_model=Page[schemas.TaskOut])
-async def list_specialties(current_user: User = Depends(get_current_user)):
+async def list_tasks(current_user: User = Depends(get_current_user)):
     """List all tasks for user."""
-    return paginate(await current_user.tasks.all())
+    return await paginate(Task.filter(user=current_user))
 
 
 @task_router.get(
@@ -41,7 +46,11 @@ async def get_task(
         )
 
 
-@task_router.post("/", response_model=schemas.TaskOut)
+@task_router.post(
+    "/",
+    response_model=schemas.TaskOut,
+    status_code=HTTP_201_CREATED,
+)
 async def create_task(
     task_data: schemas.TaskCreate,
     current_user: User = Depends(get_current_user),
