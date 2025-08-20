@@ -5,7 +5,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi_babel import BabelMiddleware, BabelConfigs
 from fastapi_pagination import add_pagination
 from tortoise import Tortoise, generate_config
-from tortoise.contrib.fastapi import RegisterTortoise
+from tortoise.contrib.fastapi import (
+    RegisterTortoise,
+    tortoise_exception_handlers,
+)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
@@ -62,14 +65,13 @@ async def lifespan_test(_app: FastAPI) -> AsyncGenerator[None, None]:
             app=_app,
             config=config,
             generate_schemas=True,
-            add_exception_handlers=True,
             _create_db=True,
         ):
             yield
     except Exception as e:
         raise
     finally:
-        await Tortoise._drop_s()
+        await Tortoise.close_connections()
 
 
 @asynccontextmanager
@@ -85,7 +87,6 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
                 app=_app,
                 config=settings.tortoise_config,
                 generate_schemas=True,
-                add_exception_handlers=True,
             ):
                 _init_router(_app)
                 _init_pagination(_app)
@@ -102,6 +103,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
         docs_url=settings.docs_url,
         redoc_url=settings.redoc_url,
+        exception_handlers=tortoise_exception_handlers(),
     )
     _init_middleware(_app)
     _init_internalization(_app)
