@@ -81,6 +81,9 @@ aerich migrate
 aerich upgrade
 ```
 
+##  Swagger
+[here](http://127.0.0.1:8000/docs#/)
+
 ##  Tests
 ```shell
 pytest
