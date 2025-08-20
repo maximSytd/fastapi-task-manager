@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-task-manager"
-version = "0.1.0"
+version = "1.0.0"
 description = "Test task project project"
 authors = [{ name = "Your name" }]
 requires-python = ">=3.11, <4.0"
@@ -21,7 +21,7 @@ dependencies = [
     "bcrypt (>=4.3.0,<5.0.0)",
     "python-jose (>=3.5.0,<4.0.0)",
     "cryptography (>=45.0.5,<46.0.0)",
-    "invocations (>=4.0.2,<5.0.0)",
+    "async-factory-boy>=1.0.1",
 ]
 
 [dependency-groups]
