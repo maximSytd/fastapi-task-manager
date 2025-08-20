@@ -24,3 +24,6 @@ archive.zip
 # vim temporary files
 *~
 .*.sw?
+
+# MacOS cache files
+.DS_Store
