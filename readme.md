@@ -14,6 +14,10 @@ This project is based on [FastAPI Docker Boilerplate](https://github.com/Afaneor
 ## Setup
 
 1. Clone the repository
+   ```
+   git clone https://github.com/maximSytd/fastapi-task-manager.git &&
+   cd fastapi-task-manager && uv sync --active
+   ```
 2. Create a `.env` file based on `.env.example`:
    ```
    cp .env.example .env
@@ -70,6 +74,11 @@ aerich migrate
 
 ```shell
 aerich upgrade
+```
+
+##  Tests
+```shell
+pytest
 ```
 
 ## Translations
