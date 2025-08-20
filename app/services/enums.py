@@ -13,7 +13,7 @@ class TranslatableStrEnum(enum.StrEnum):
     """StrEnum with fastapi-babel translation support."""
 
     def __new__(cls, value: str, label):
-        obj = str.new(cls, value)
+        obj = str.__new__(cls, value)
         obj._value_ = value
         obj.label = label
         return obj
@@ -27,6 +27,11 @@ class TranslatableStrEnum(enum.StrEnum):
     def choices(cls):
         """Return enum choices (value, label)."""
         return [(item.value, str(item.label)) for item in cls]
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Return list of enum values"""
+        return [item.value for item in cls]
 
     def as_dict(self) -> StrEnumAsDict:
         """Return value and label as dict."""
