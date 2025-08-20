@@ -1,4 +1,4 @@
-from fastapi_babel import _
+from fastapi_babel import lazy_gettext as _
 
 from tortoise import fields
 from tortoise.fields.base import OnDelete
@@ -10,7 +10,7 @@ class Task(BaseModel):
     """Represent Task in db."""
 
     id = fields.UUIDField(
-        pk=True,
+        primary_key=True,
     )
     title = fields.CharField(
         max_length=120,

@@ -15,7 +15,7 @@ class BaseModel(TimeStampMixin, models.Model):
     """Base db model with integer id and timestamp mixin."""
 
     id = fields.IntField(
-        pk=True,
+        primary_key=True,
     )
 
     class Meta:
