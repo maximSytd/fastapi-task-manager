@@ -13,6 +13,11 @@ This project is based on [FastAPI Docker Boilerplate](https://github.com/Afaneor
 
 ## Setup
 
+### ✅ Prerequisites
+
+- [Python](https://www.python.org/) (3.11+ recommended)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
 1. Clone the repository
    ```
    git clone https://github.com/maximSytd/fastapi-task-manager.git &&
