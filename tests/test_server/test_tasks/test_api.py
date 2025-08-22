@@ -9,7 +9,7 @@ from starlette.status import (
     HTTP_204_NO_CONTENT,
 )
 
-from app.db.models import Task, User
+from app.db.models import Task
 from tests.utils import is_valid_uuid
 from app.api.tasks.task import TASK_NOT_FOUND_MESSAGE
 
