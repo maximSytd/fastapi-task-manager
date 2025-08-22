@@ -28,6 +28,9 @@ class TaskUpdate(TaskBase):
 class TaskOut(TaskBase):
     """Task schema for db instances."""
 
+    model_config = pydantic.ConfigDict(
+        from_attributes = True
+    )
     id: uuid.UUID
     status: StrEnumAsDict
     created: datetime.datetime
@@ -43,6 +46,3 @@ class TaskOut(TaskBase):
         if isinstance(value, Task.StatusChoices):
             return value.as_dict()
         return value
-
-    class Config:
-        from_attributes = True

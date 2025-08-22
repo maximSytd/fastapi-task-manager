@@ -15,7 +15,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     """User schema for db instances."""
 
-    id: int
-
-    class Config:
+    model_config = pydantic.ConfigDict(
         from_attributes = True
+    )
+    id: int
