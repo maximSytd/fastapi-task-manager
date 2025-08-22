@@ -29,7 +29,7 @@ class TaskOut(TaskBase):
     """Task schema for db instances."""
 
     model_config = pydantic.ConfigDict(
-        from_attributes = True
+        from_attributes = True,
     )
     id: uuid.UUID
     status: StrEnumAsDict
