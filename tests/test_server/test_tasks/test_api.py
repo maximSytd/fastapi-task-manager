@@ -9,8 +9,9 @@ from starlette.status import (
     HTTP_204_NO_CONTENT,
 )
 
-from app.db.models import Task
+from app.db.models import Task, User
 from tests.utils import is_valid_uuid
+from app.api.tasks.task import TASK_NOT_FOUND_MESSAGE
 
 
 @pytest.mark.asyncio
@@ -167,3 +168,47 @@ async def test_invalid_id_task_api(
         }
     )
     assert response.status_code == HTTP_404_NOT_FOUND, response.text
+
+@pytest.mark.asyncio
+async def test_access_control_task_api_get(
+    unfair_authorized_async_client: AsyncClient,
+    task_for_test_user: Task,
+):
+    """Ensure that api have restrict access for get other user tasks."""
+    response = await unfair_authorized_async_client.get(
+        f"api/tasks/{task_for_test_user.id}",
+    )
+    response_body = response.json()
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response_body["detail"] == TASK_NOT_FOUND_MESSAGE
+
+
+@pytest.mark.asyncio
+async def test_access_control_task_api_update(
+    unfair_authorized_async_client: AsyncClient,
+    task_for_test_user: Task,
+):
+    """Ensure that api have restrict access for update other user tasks."""
+    response = await unfair_authorized_async_client.put(
+        f"api/tasks/{task_for_test_user.id}",
+        json={
+            "title": task_for_test_user.title,
+        }
+    )
+    response_body = response.json()
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response_body["detail"] == TASK_NOT_FOUND_MESSAGE
+
+
+@pytest.mark.asyncio
+async def test_access_control_task_api_delete(
+    unfair_authorized_async_client: AsyncClient,
+    task_for_test_user: Task,
+):
+    """Ensure that api have restrict access for delete other user tasks."""
+    response = await unfair_authorized_async_client.delete(
+        f"api/tasks/{task_for_test_user.id}",
+    )
+    response_body = response.json()
+    assert response.status_code == HTTP_404_NOT_FOUND
+    assert response_body["detail"] == TASK_NOT_FOUND_MESSAGE
