@@ -11,7 +11,7 @@ from starlette.status import (
 
 from app.db.models import Task
 from tests.utils import is_valid_uuid
-from app.api.tasks.task import TASK_NOT_FOUND_MESSAGE
+from app.api.tasks.rest import TASK_NOT_FOUND_MESSAGE
 
 
 @pytest.mark.asyncio
