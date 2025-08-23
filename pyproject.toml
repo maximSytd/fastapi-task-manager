@@ -22,6 +22,7 @@ dependencies = [
     "python-jose (>=3.5.0,<4.0.0)",
     "cryptography (>=45.0.5,<46.0.0)",
     "async-factory-boy>=1.0.1",
+    "strawberry-graphql[cli,fastapi]>=0.280.0",
 ]
 
 [dependency-groups]
