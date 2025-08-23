@@ -10,13 +10,14 @@ from services.auth import (
     verify_password,
     get_password_hash,
 )
+from .messages import (
+    INCORRECT_CREDENTIALS_MESSAGE,
+    USERNAME_ALREADY_EXIST_MESSAGE,
+)
 
-user_router = APIRouter()
+user_router_rest = APIRouter()
 
-INCORRECT_CREDENTIALS_MESSAGE = "Incorrect username or password"
-USERNAME_ALREADY_EXIST_MESSAGE = "Username already exists"
-
-@user_router.post(
+@user_router_rest.post(
     "/token",
     response_model=schemas.Token,
     responses={
@@ -45,7 +46,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@user_router.post(
+@user_router_rest.post(
     "/register",
     response_model=schemas.UserOut,
     status_code=HTTP_201_CREATED,
